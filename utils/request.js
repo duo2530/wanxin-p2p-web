@@ -1,6 +1,14 @@
 // 后端地址和文件服务地址
-const BaseUrl = 'http://127.0.0.1:53010/'
-const FileServiceUrl = 'http://127.0.0.1:56090/minio/image'
+let BaseUrl = 'http://127.0.0.1:53010/'
+let FileServiceUrl = 'http://127.0.0.1:56090/minio/image'
+
+// H5 生产构建由同域 nginx 反向代理: /api/ -> 网关, /minio/ -> 文件服务
+// #ifdef H5
+if (process.env.NODE_ENV === 'production') {
+    BaseUrl = '/api/'
+    FileServiceUrl = '/minio/image'
+}
+// #endif
 
 // 测试
 // const BaseUrl = 'http://127.0.0.1:53010/'
