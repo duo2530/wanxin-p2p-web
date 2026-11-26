@@ -13,7 +13,7 @@
 							<view class="row" @tap="goPath('/')">
 								<view class="col">
 									<view><text class="price">{{tab.amount}}</text> 元</view>
-									<view class="gray"> {{tabIndex == 0 ? utils.dateFormat({date:tab.createDate, rule:'y年m月d日'}) : utils.dateFormat({date:tab.repaymentDate, rule:'y年m月d日'})}} {{tabIndex == 0 ? '借款' : '还款'}} </view>
+									<view class="gray"> {{tabIndex == 0 ? utils.dateFormat({date:tab.createDate, rule:'y年m月d日'}) : utils.dateFormat({date:fixDate(tab.repaymentDate), rule:'y年m月d日'})}} {{tabIndex == 0 ? '借款' : '还款'}} </view>
 								</view>
 								<view class="date"> {{tabIndex == 0 ? `共 ${tab.period / 30} 期` : ``}} </view>
 								<view class="act" v-show="tabIndex == 0">
@@ -23,11 +23,12 @@
 									<ButtonItems type="med-blue-empty" @click="goPath('/pages/borrow/borrowDet')" value="已完成" v-if="tab.status == 1 && tab.projectStatus == 'FINISH' " />
 								</view>
 								<view class="act" v-show="tabIndex != 0"> 
-									<text @click="goPath('/pages/borrow/borrowDet')" >{{tab.withholdWay}} > </text>
+									<text>{{tab.withholdWay || '自动还款'}}<text v-if="tab.numberOfPeriods"> 第{{tab.numberOfPeriods}}期</text></text>
 								</view>
 							</view>
 						</view>
 					</view>
+					<view class="empty" v-if="showData.length == 0">暂无记录</view>
 				</scroll-view>
 			</swiper-item>
 		</swiper>
@@ -73,6 +74,10 @@
 		methods: {
 			goPath(url){
 				uni.navigateTo({url})
+			},
+			// iOS Safari 不识别空格分隔的日期, 换成 T
+			fixDate(d){
+				return d ? String(d).replace(' ', 'T') : ''
 			},
 			getData(){
 				if (this.tabIndex == 0) {
@@ -137,9 +142,9 @@
 			async changeTab(e) {
 				let index = e.target.current;
 				if (index == 0){
-					this.showData = this.loanData.length >0 ? this.loanData : this.getLoanData()
+					this.showData = this.loanData.length >0 ? this.loanData : (this.getLoanData(), [])
 				}else{
-					this.showData = this.borrowData.length >0 ? this.borrowData : this.getBorrowData()
+					this.showData = this.borrowData.length >0 ? this.borrowData : (this.getBorrowData(), [])
 				}
 				
 				let tabBar = await this.getElSize("tab-bar"),
@@ -212,6 +217,12 @@
 		width: 700upx;
 		margin-left: 50%;
 		transform: translateX(-50%);
+	}
+	.empty{
+		text-align: center;
+		font-size: 28upx;
+		color: #999;
+		line-height: 200upx;
 	}
 	.uni-tab-bar-loading {
 		text-align: center;
